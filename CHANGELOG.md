@@ -1,6 +1,27 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+本项目遵循 [语义化版本](https://semver.org/lang/zh-CN/)（Semantic Versioning）规范。
+所有值得注意的变更都会被记录在此文件中。
+
+格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
+版本号遵循 `MAJOR.MINOR.PATCH` 规则。
+
+---
+
+## [1.1.0] - 2026-05-22
+
+### Added
+- 新增 `_is_valid_api_key()` 校验函数，自动检测 API Key 是否为有效值，防止占位符引发崩溃
+
+### Fixed
+- **修复 GPU 转录 CUDA DLL 缺失崩溃**：CUDA 13 驱动环境中 `ctranslate2` 找不到 `cublas64_12.dll` 的问题。现在自动注册 NVIDIA CUDA 12 运行时 DLL 路径
+- **修复 DeepSeek API Key 占位符导致 ASCII 编码崩溃**：当 `.env` 中填入中文占位符（如 `sk-你的API密钥填这里`）时，`httpx` 构建 Header 抛出 `UnicodeEncodeError`。现在 4 处 API 调用入口均增加 Key 有效性校验
+- **修复 OpenCV `imwrite` 中文路径截图写入失败**：`cv2.imwrite` 对含全角冒号路径写入失败，截图日志显示完成但实际文件不存在。改用 `cv2.imencode` + Python `open(wb)` 写入 JPEG
+- **修复断点续跑 Basic / With-Images 模式互斥跳过**：Basic 模式处理后，同 URL 的 With-Images 模式被错误跳过。现在支持 `URL + mode` 双重匹配
+- **修复 With-Images 模式下 .md 图片显示空白**：`transcript_with_images.md` 中图片引用路径缺少 `../` 前缀，导致 Markdown 阅读器（幕布等）从 `results/` 出发解析路径时找不到实际位于上级目录的图片文件。修复为 `![截图](../segment_NNN/images/xxx.jpg)` 正确回退一层
+
+### Changed
+- `.gitignore` 新增 `metadata.json` 排除规则
 
 ---
 
@@ -10,7 +31,7 @@ All notable changes to this project will be documented in this file.
 
 #### 核心工作流
 - 完整的 B站视频 → 笔记端到端自动化处理流水线
-- 双模式支持：`basic`（音频转录+AI笔记）和 `with_images`（完整视频+截图）
+- 双模式支持：`basic`（音频转录 + AI 笔记）和 `with_images`（完整视频 + 截图）
 
 #### 链接解析 (`src/link_parser.py`)
 - 支持三种 B站链接格式：`bilibili.com/video/`、`b23.tv` 短链、`bilibili.com/bangumi/play/`
@@ -26,7 +47,7 @@ All notable changes to this project will be documented in this file.
 - yt-dlp `.info.json` 元数据解析
 
 #### 视频分段 (`src/video_splitter.py`)
-- `split_video()`：长视频（>60分钟）自动 ffmpeg segment 切割
+- `split_video()`：长视频（>60 分钟）自动 ffmpeg segment 切割
 - 流拷贝模式（`-c copy`），无转码损耗
 - `filter_and_adjust_segments()`：Whisper 时间戳与分段视频时间轴适配
 - `save_segments_report()`：生成切割报告 Markdown
@@ -75,8 +96,7 @@ All notable changes to this project will be documented in this file.
 - pyright 全项目静态类型检查
 - AST 编译语法检查
 
-### Known Issues
-- `basic` 模式不下载完整视频，仅下载音频
-- `requirements.txt` 未声明 `yt-dlp` 依赖
-- 未集成 B站 Cookie / 登录态支持
-- 文字清洗模块不包含语句通顺度优化
+---
+
+[1.1.0]: https://github.com/YanYuChunMing/bili-video-notes-workflow/compare/v1.0.0...v1.1.0
+[1.0.0]: https://github.com/YanYuChunMing/bili-video-notes-workflow/releases/tag/v1.0.0

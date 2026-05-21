@@ -33,7 +33,7 @@ def build_transcript_with_images(
         for ss_time, img_path in screenshots.items():
             if seg_start <= ss_time <= seg_end:
                 ss_ts = utils.seconds_to_timestamp(ss_time)
-                lines.append(f"![截图 {ss_ts}]({img_path})\n")
+                lines.append(f"![截图 {ss_ts}](../{img_path})\n")
 
     content = "\n".join(lines)
     utils.write_text_file(output_path, content)
