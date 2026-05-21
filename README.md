@@ -108,4 +108,115 @@ bili_video/
 
 ---
 
-## ⚙️
+## ⚙️ 配置说明
+
+### config.toml
+
+```toml
+[whisper]
+model = "medium"       # 模型大小: tiny/base/small/medium/large
+language = "Chinese"   # 转录语言
+device = "cuda"        # cuda 或 cpu
+
+[deepseek]
+model = "deepseek-chat"
+base_url = "https://api.deepseek.com"
+max_chunk_minutes = 12 # 分块处理的每块最大对应时长
+
+[screenshot]
+enabled = false        # 是否启用截图
+min_interval_seconds = 5
+max_avg_per_minute = 5
+difference_threshold = 0.85  # SSIM 相似度阈值
+
+[[tasks]]
+name = "basic_test"
+input_file = "links.txt"
+mode = "basic"
+```
+
+### .env（API 密钥）
+
+```
+DEEPSEEK_API_KEY=sk-your-api-key-here
+DEEPSEEK_BASE_URL=https://api.deepseek.com
+```
+
+> ⚠️ **注意**：未配置 API Key 时，AI 功能（标点补全、摘要、思维导图）将自动跳过，仅保留转录功能。
+
+---
+
+## 📊 技术栈
+
+| 层次 | 技术 | 用途 |
+|------|------|------|
+| 语言 | Python 3.10+ | 核心开发 |
+| 媒体下载 | yt-dlp | B站音视频下载 |
+| 媒体处理 | ffmpeg / ffprobe | 音频提取、视频切割 |
+| 语音转录 | faster-whisper / openai-whisper | 语音→文字 |
+| AI 文本 | DeepSeek API (OpenAI 兼容) | 标点、摘要、导图 |
+| 繁简转换 | OpenCC | 繁体→简体 |
+| 图像处理 | OpenCV + scikit-image (SSIM) | 关键帧提取去重 |
+| 配置管理 | TOML + python-dotenv | 配置与环境变量 |
+
+---
+
+## 📚 完整文档
+
+详细的项目框架文档请参阅 [PROJECT_FRAMEWORK.md](PROJECT_FRAMEWORK.md)，包含：
+
+- 项目架构概述与技术栈详解
+- 完整的 CLI / API / 内部函数接口信息
+- 11 个模块的功能说明与实现逻辑
+- 环境配置、部署步骤、常见问题排查
+- 数据结构定义与文件存储格式
+- 关键业务流程（含流程图）
+
+---
+
+## ⚠️ 已知限制
+
+| 限制项 | 说明 |
+|--------|------|
+| **基础模式不下载视频** | `basic` 模式仅下载音频，不下载视频文件 |
+| **B站登录态** | 当前未集成 Cookie/登录，需登录的视频可能下载失败 |
+| **依赖完整性** | `requirements.txt` 未声明 `yt-dlp`，需手动安装 |
+| **外部依赖** | `ffmpeg`/`ffprobe` 需单独安装并添加到系统 PATH |
+| **AI 功能可选** | 需配置 DeepSeek API Key 才能使用标点/摘要/导图功能 |
+
+---
+
+## 🔧 开发相关
+
+### 代码质量检查
+
+```bash
+python _check.py
+```
+
+执行 pyright 静态类型检查 + AST 编译检查。
+
+### 输出目录结构
+
+```
+outputs/
+└── 001_视频标题/
+    ├── audio.wav
+    ├── segments.json
+    ├── metadata.json
+    └── results/
+        ├── transcript.txt
+        ├── transcript_with_timestamps.md
+        ├── transcript_with_punct.txt
+        ├── summary.md
+        ├── mindmap.md
+        ├── mindmap.html
+        ├── transcript_with_images.md  # with_images 模式
+        └── video_segments_report.md   # 长视频切割报告
+```
+
+---
+
+## 📄 License
+
+MIT License
