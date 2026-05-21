@@ -37,8 +37,9 @@ temp/
 processed.json
 failed.json
 
-# yt-dlp metadata
+# yt-dlp / project metadata
 *.info.json
+metadata.json
 
 # Media files (downloaded)
 *.wav

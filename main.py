@@ -187,8 +187,8 @@ def run_task(task_config: dict, config: dict):
     skip_count = 0
 
     for i, url in enumerate(urls, 1):
-        if utils.is_url_already_processed(url, processed_file):
-            logger.info(f"[{i}/{len(urls)}] 已处理过，跳过: {url}")
+        if utils.is_url_already_processed(url, processed_file, mode):
+            logger.info(f"[{i}/{len(urls)}] 已用 {mode} 模式处理过，跳过: {url}")
             skip_count += 1
             continue
 

@@ -157,7 +157,9 @@ class DefaultScreenshotter(ScreenshotterInterface):
 
             filename = utils.timestamp_to_filename(target_time) + ".jpg"
             filepath = os.path.join(images_dir, filename)
-            cv2.imwrite(filepath, frame, [cv2.IMWRITE_JPEG_QUALITY, 85])
+            buf = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 85])[1]
+            with open(filepath, "wb") as f:
+                f.write(buf.tobytes())
 
             screenshots[target_time] = os.path.join("images", filename)
             last_screenshot_time = target_time

@@ -107,8 +107,10 @@ def write_text_file(filepath: str, content: str):
         f.write(content)
 
 
-def is_url_already_processed(url: str, processed_file: str) -> bool:
+def is_url_already_processed(url: str, processed_file: str, mode: str = "") -> bool:
     processed = load_json(processed_file, [])
+    if mode:
+        return any(item.get("url") == url and item.get("mode") == mode for item in processed)
     return any(item.get("url") == url for item in processed)
 
 

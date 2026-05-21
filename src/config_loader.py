@@ -64,6 +64,17 @@ def load_config(config_path: str = "config.toml") -> dict:
         "DEEPSEEK_BASE_URL", config["deepseek"]["base_url"]
     )
 
+    api_key = config["deepseek"]["api_key"]
+    if api_key:
+        try:
+            api_key.encode("ascii")
+        except UnicodeEncodeError:
+            print("[WARN] DeepSeek API Key 包含非 ASCII 字符，将被视为无效")
+            config["deepseek"]["api_key"] = ""
+        if any(pl in api_key.lower() for pl in ("请替换", "api密钥填这里", "your_key", "your-api-key")):
+            print("[WARN] DeepSeek API Key 似乎仍是占位符，将被视为无效")
+            config["deepseek"]["api_key"] = ""
+
     return config
 
 

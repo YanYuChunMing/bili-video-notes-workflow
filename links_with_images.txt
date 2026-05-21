@@ -1,3 +1,1 @@
-# 此文件中每行一个链接，将使用 with_images 模式处理（下载视频 + 截图）
-# 示例链接：
-# https://www.bilibili.com/video/BV1xx411c7mD
+【从混乱到清晰：5分钟掌握Go模块】https://www.bilibili.com/video/BV1eRrABqE7P?vd_source=c8319f346ce9d758e6f1f680e4158d9b

@@ -9,6 +9,18 @@ from . import utils
 logger = logging.getLogger(__name__)
 
 
+def _is_valid_api_key(key: str) -> bool:
+    if not key:
+        return False
+    try:
+        key.encode("ascii")
+    except UnicodeEncodeError:
+        return False
+    if any(pl in key.lower() for pl in ("请替换", "api密钥填这里", "your_key", "your-api-key")):
+        return False
+    return len(key) >= 10 and key.startswith("sk-")
+
+
 def _create_client(config: dict) -> OpenAI:
     return OpenAI(
         api_key=config["deepseek"]["api_key"],
@@ -53,8 +65,8 @@ def clean_transcript_with_punctuation(
 ) -> str:
     logger.info("开始标点补全和段落整理...")
 
-    if not config["deepseek"]["api_key"]:
-        logger.warning("未配置 DeepSeek API Key，跳过标点整理，返回原文")
+    if not _is_valid_api_key(config["deepseek"]["api_key"]):
+        logger.warning("未配置有效的 DeepSeek API Key，跳过标点整理，返回原文")
         utils.write_text_file(output_path, raw_text)
         return raw_text
 

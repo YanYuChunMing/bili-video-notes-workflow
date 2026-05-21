@@ -67,6 +67,18 @@ MINDMAP_HTML_TEMPLATE = '''<!DOCTYPE html>
 </html>'''
 
 
+def _is_valid_api_key(key: str) -> bool:
+    if not key:
+        return False
+    try:
+        key.encode("ascii")
+    except UnicodeEncodeError:
+        return False
+    if any(pl in key.lower() for pl in ("请替换", "api密钥填这里", "your_key", "your-api-key")):
+        return False
+    return len(key) >= 10 and key.startswith("sk-")
+
+
 def _create_client(config: dict) -> OpenAI:
     return OpenAI(
         api_key=config["deepseek"]["api_key"],
@@ -82,8 +94,8 @@ def generate_mindmap(
     md_path = os.path.join(output_dir, "mindmap.md")
     html_path = os.path.join(output_dir, "mindmap.html")
 
-    if not config["deepseek"]["api_key"]:
-        logger.warning("未配置 DeepSeek API Key，跳过思维导图生成")
+    if not _is_valid_api_key(config["deepseek"]["api_key"]):
+        logger.warning("未配置有效的 DeepSeek API Key，跳过思维导图生成")
         fallback = "# 思维导图\n\n（未配置 DeepSeek API，无法生成思维导图）"
         utils.write_text_file(md_path, fallback)
         return {"mindmap_md": md_path, "mindmap_html": None}

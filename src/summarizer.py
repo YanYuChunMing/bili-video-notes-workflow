@@ -8,6 +8,18 @@ from . import utils
 logger = logging.getLogger(__name__)
 
 
+def _is_valid_api_key(key: str) -> bool:
+    if not key:
+        return False
+    try:
+        key.encode("ascii")
+    except UnicodeEncodeError:
+        return False
+    if any(pl in key.lower() for pl in ("请替换", "api密钥填这里", "your_key", "your-api-key")):
+        return False
+    return len(key) >= 10 and key.startswith("sk-")
+
+
 def _create_client(config: dict) -> OpenAI:
     return OpenAI(
         api_key=config["deepseek"]["api_key"],
@@ -20,8 +32,8 @@ def generate_summary(
 ) -> str:
     logger.info("开始生成学习笔记型总结...")
 
-    if not config["deepseek"]["api_key"]:
-        logger.warning("未配置 DeepSeek API Key，跳过笔记生成")
+    if not _is_valid_api_key(config["deepseek"]["api_key"]):
+        logger.warning("未配置有效的 DeepSeek API Key，跳过笔记生成")
         fallback = "# 学习笔记\n\n（未配置 DeepSeek API，无法生成笔记摘要）\n\n## 原文\n\n" + cleaned_text
         utils.write_text_file(output_path, fallback)
         return fallback

@@ -1,6 +1,18 @@
 import os
 import json
 import logging
+import site
+
+_nvidia_dll_dirs = []
+try:
+    for sp in site.getsitepackages():
+        for sub in ("nvidia\\cublas\\bin", "nvidia\\cuda_runtime\\bin"):
+            d = os.path.join(sp, sub)
+            if os.path.isdir(d):
+                os.add_dll_directory(d)
+                _nvidia_dll_dirs.append(d)
+except Exception:
+    pass
 
 from . import utils
 

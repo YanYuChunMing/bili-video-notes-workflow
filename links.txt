@@ -1,8 +1,1 @@
-# 每行一个B站视频链接
-# 支持 bilibili.com/video/ 和 b23.tv 短链接格式
-# 以 # 开头的行为注释，会被忽略
-# 空行会被跳过
-
-# 示例链接（请替换为实际链接）：
-# https://www.bilibili.com/video/BV1xx411c7mD
-# https://b23.tv/xxxxxx
+【从混乱到清晰：5分钟掌握Go模块】https://www.bilibili.com/video/BV1eRrABqE7P?vd_source=c8319f346ce9d758e6f1f680e4158d9b
