@@ -1287,7 +1287,7 @@ process_single_video() [mode=with_images]
 
 ## 7. 已知问题与限制
 
-本章节记录当前版本（v1.0）中已验证的已知问题、限制和需要注意的边界条件。这些问题不影响核心功能的正常使用，但部署者和使用者应当知晓。
+本章节记录当前版本（v1.1.0）中已验证的已知问题、限制和需要注意的边界条件。这些问题不影响核心功能的正常使用，但部署者和使用者应当知晓。
 
 ### 7.1 部署就绪性问题
 
@@ -1468,11 +1468,15 @@ yt-dlp
 
 ## 8. 版本历史
 
-| 版本 | 日期 | 变更说明 |
-|------|------|---------|
-| **v1.0** | 2026-05-20 | 初始版本。实现完整的 B站视频→笔记工作流：链接解析、音频/视频下载（yt-dlp）、Whisper 语音转录（faster-whisper / openai-whisper）、DeepSeek API 标点补全与分段、学习笔记摘要生成、思维导图生成（Markdown + HTML）、OpenCV + SSIM 智能截图、图文笔记整合、长视频 ffmpeg 分段切割、断点续跑机制、TOML + dotenv 多层级配置管理 |
+本项目遵循 [语义化版本](https://semver.org/lang/zh-CN/)（Semantic Versioning），
+变更日志格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
-详见 [CHANGELOG.md](CHANGELOG.md)。
+| 版本 | 日期 | 类型 | 说明 |
+|------|------|------|------|
+| **v1.1.0** | 2026-05-22 | MINOR | Bug 修复与健壮性增强：修复 CUDA DLL 缺失崩溃、API Key 占位符崩溃、OpenCV 中文路径截图写入失败、断点续跑模式互斥问题；新增 API Key 有效性校验 |
+| **v1.0.0** | 2026-05-20 | MAJOR | 初始版本。完整的 B站视频→笔记端到端流水线 |
+
+完整变更记录详见 [CHANGELOG.md](CHANGELOG.md)。
 
 ---
 
@@ -1517,6 +1521,6 @@ python _check.py
 
 ---
 
-> **文档版本**：v1.1  
-> **更新日期**：2026-05-20  
-> **基于项目**：bili-video-notes-workflow
+> **文档版本**：v1.2  
+> **更新日期**：2026-05-22  
+> **基于项目**：bili-video-notes-workflow v1.1.0

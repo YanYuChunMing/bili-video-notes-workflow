@@ -8,6 +8,28 @@
 
 ---
 
+## [1.2.0] - 2026-05-22
+
+### Added
+
+#### Docker 容器化支持（CPU + GPU 双版本）
+
+- **Dockerfile**：一键构建的 CPU 版 Docker 镜像，内置 Python 3.12、ffmpeg、全部依赖
+- **Dockerfile.gpu**：基于 `nvidia/cuda:12.6.3-cudnn-runtime-ubuntu24.04` 的 GPU 加速版镜像，whisper 转录速度提升 5~15 倍
+- **docker-compose.yml**：双 profile 编排（默认 CPU / `--profile gpu`），自动挂载输入输出目录
+- **.dockerignore**：排除无关文件，优化构建效率
+- **docker_install.ps1**：Windows 一键 Docker Desktop 安装脚本（winget 优先 + 直链备用）
+- **docker_install.sh**：Linux / macOS 一键 Docker 安装脚本，自动识别发行版
+- **README.md** 新增完整 Docker 章节：系统工程环境要求、GitHub Releases 下载指引、构建运行、GPU 加速配置、常见问题排查
+- **README.md** "我应该看哪里"导航表新增 Docker 行（排第一位推荐）
+- **README.md** 项目文件结构图新增 Docker 相关文件
+
+#### 代码质量
+
+- `.gitignore` 新增 Docker 排除规则
+
+---
+
 ## [1.1.0] - 2026-05-22
 
 ### Added
@@ -98,5 +120,6 @@
 
 ---
 
+[1.2.0]: https://github.com/YanYuChunMing/bili-video-notes-workflow/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/YanYuChunMing/bili-video-notes-workflow/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/YanYuChunMing/bili-video-notes-workflow/releases/tag/v1.0.0

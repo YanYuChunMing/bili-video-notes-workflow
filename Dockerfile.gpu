@@ -1,0 +1,33 @@
+FROM nvidia/cuda:12.6.3-cudnn-runtime-ubuntu24.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3.12 \
+    python3.12-venv \
+    python3-pip \
+    ffmpeg \
+    && update-alternatives --install /usr/bin/python python /usr/bin/python3.12 1 \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY requirements.txt .
+
+RUN pip install --no-cache-dir --break-system-packages \
+    -r requirements.txt \
+    -i https://pypi.tuna.tsinghua.edu.cn/simple \
+    && pip install --no-cache-dir --break-system-packages \
+    yt-dlp \
+    -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+COPY . .
+
+RUN mkdir -p outputs downloads logs
+
+VOLUME ["/app/outputs", "/app/downloads", "/app/logs"]
+
+ENV NVIDIA_VISIBLE_DEVICES=all
+
+ENTRYPOINT ["python", "main.py"]
+CMD ["--task", "basic_test"]

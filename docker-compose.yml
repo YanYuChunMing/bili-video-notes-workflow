@@ -1,0 +1,64 @@
+services:
+  bili-video:
+    build: .
+    image: bili-video-notes:latest
+    container_name: bili-video-notes
+    profiles: [""]
+    volumes:
+      - ./outputs:/app/outputs
+      - ./downloads:/app/downloads
+      - ./logs:/app/logs
+      - ./links.txt:/app/links.txt:ro
+      - ./links_with_images.txt:/app/links_with_images.txt:ro
+      - ./config.toml:/app/config.toml:ro
+      - ./.env:/app/.env:ro
+    environment:
+      - PYTHONUNBUFFERED=1
+    command: ["--task", "basic_test"]
+
+  bili-video-web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    image: bili-video-notes:web-latest
+    container_name: bili-video-notes-web
+    profiles: ["web"]
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./outputs:/app/outputs
+      - ./downloads:/app/downloads
+      - ./logs:/app/logs
+      - ./links.txt:/app/links.txt:ro
+      - ./links_with_images.txt:/app/links_with_images.txt:ro
+      - ./config.toml:/app/config.toml
+      - ./.env:/app/.env
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  bili-video-gpu:
+    build:
+      context: .
+      dockerfile: Dockerfile.gpu
+    image: bili-video-notes:gpu-latest
+    container_name: bili-video-notes-gpu
+    profiles: ["gpu"]
+    volumes:
+      - ./outputs:/app/outputs
+      - ./downloads:/app/downloads
+      - ./logs:/app/logs
+      - ./links.txt:/app/links.txt:ro
+      - ./links_with_images.txt:/app/links_with_images.txt:ro
+      - ./config.toml:/app/config.toml:ro
+      - ./.env:/app/.env:ro
+    environment:
+      - PYTHONUNBUFFERED=1
+      - NVIDIA_VISIBLE_DEVICES=all
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    command: ["--task", "basic_test"]
