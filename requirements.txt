@@ -1,0 +1,8 @@
+faster-whisper>=1.0.0
+openai-whisper>=20231117
+openai>=1.0.0
+python-dotenv>=1.0.0
+toml>=0.10.0
+opencc>=1.1.0
+opencv-python>=4.8.0
+scikit-image>=0.22.0

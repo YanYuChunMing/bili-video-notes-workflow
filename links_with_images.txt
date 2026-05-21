@@ -1,0 +1,3 @@
+# 此文件中每行一个链接，将使用 with_images 模式处理（下载视频 + 截图）
+# 示例链接：
+# https://www.bilibili.com/video/BV1xx411c7mD

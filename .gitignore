@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+
+# Virtual Environment
+venv/
+.venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Project Specific
+config.toml
+.env
+outputs/
+logs/
+downloads/
+temp/
+processed.json
+failed.json
+
+# yt-dlp metadata
+*.info.json
+
+# Media files (downloaded)
+*.wav
+*.mp4
+*.mkv
+*.webm
+*.jpg
+*.jpeg
+*.png

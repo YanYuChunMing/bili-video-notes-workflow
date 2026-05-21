@@ -1,0 +1,35 @@
+[project]
+name = "bili-video-notes-workflow"
+output_dir = "outputs"
+log_dir = "logs"
+temp_dir = "temp"
+download_dir = "downloads"
+
+[whisper]
+model = "medium"
+language = "Chinese"
+device = "cuda"
+
+
+[deepseek]
+model = "deepseek-chat"
+base_url = "https://api.deepseek.com"
+max_chunk_minutes = 12
+max_retries = 3
+retry_delay_seconds = 5
+
+[screenshot]
+enabled = false
+min_interval_seconds = 5
+max_avg_per_minute = 5
+difference_threshold = 0.85
+
+[[tasks]]
+name = "basic_test"
+input_file = "links.txt"
+mode = "basic"
+
+[[tasks]]
+name = "with_images_test"
+input_file = "links_with_images.txt"
+mode = "with_images"
