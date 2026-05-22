@@ -33,6 +33,34 @@ except ImportError:
     logger.warning("faster-whisper 未安装，回退使用 openai-whisper")
 
 
+def _resolve_openai_whisper_model_name(model_name: str) -> str:
+    known = {
+        "tiny", "tiny.en", "base", "base.en",
+        "small", "small.en", "medium", "medium.en",
+        "large-v1", "large-v2", "large-v3", "large", "turbo",
+    }
+    if model_name in known:
+        return model_name
+
+    if os.path.isdir(model_name):
+        dir_name = os.path.basename(os.path.normpath(model_name))
+        for prefix in ("faster-whisper-", "whisper-"):
+            if dir_name.startswith(prefix):
+                size = dir_name[len(prefix):]
+                if size in known:
+                    logger.info(
+                        f"[模型名映射] {model_name} -> openai-whisper '{size}'"
+                    )
+                    return size
+                break
+
+    logger.warning(
+        f"[模型名映射] 无法将 '{model_name}' 映射到 openai-whisper 内置模型，"
+        f"将使用默认值 'medium'"
+    )
+    return "medium"
+
+
 def transcribe(
     audio_path: str,
     output_dir: str,
@@ -41,25 +69,63 @@ def transcribe(
     device: str = "cuda",
     compute_type: str = "auto",
 ) -> dict:
-    if _FASTER_WHISPER_AVAILABLE and device == "cuda":
-        logger.info("使用 faster-whisper (CTranslate2 GPU 加速)")
-        return _transcribe_faster_whisper(
-            audio_path,
-            output_dir,
-            model_name=model_name,
-            language=language,
-            device=device,
-            compute_type=compute_type,
+    if _FASTER_WHISPER_AVAILABLE:
+        try:
+            logger.info("=== GPU 加速阶段：尝试 faster-whisper (CTranslate2) ===")
+            return _transcribe_faster_whisper(
+                audio_path,
+                output_dir,
+                model_name=model_name,
+                language=language,
+                device=device,
+                compute_type=compute_type,
+            )
+        except Exception as e:
+            logger.warning(
+                f"[CPU 回退] faster-whisper 在 device='{device}' 下失败: {e}"
+            )
+            logger.warning(
+                "[CPU 回退] 原因：CUDA/cuBLAS 库不可用、GPU 驱动不兼容或显存不足"
+            )
+
+            try:
+                logger.info(
+                    "[CPU 回退] 第1级回退：尝试 faster-whisper (CPU 模式)"
+                )
+                return _transcribe_faster_whisper(
+                    audio_path,
+                    output_dir,
+                    model_name=model_name,
+                    language=language,
+                    device="cpu",
+                    compute_type="int8",
+                )
+            except Exception as e2:
+                logger.warning(
+                    f"[CPU 回退] faster-whisper CPU 模式也失败: {e2}"
+                )
+
+    logger.warning(
+        "[CPU 回退] 第2级回退：切换到 openai-whisper (CPU 模式)"
+    )
+    logger.warning(
+        "[CPU 回退] 注意：CPU 模式下语音转录速度较慢，"
+        "约为 GPU 模式的 5-10 倍，请耐心等待"
+    )
+
+    resolved_model = _resolve_openai_whisper_model_name(model_name)
+    if resolved_model != model_name:
+        logger.info(
+            f"[CPU 回退] 模型名已映射: '{model_name}' -> '{resolved_model}'"
         )
-    else:
-        logger.info(f"使用 openai-whisper (device={device})")
-        return _transcribe_openai_whisper(
-            audio_path,
-            output_dir,
-            model_name=model_name,
-            language=language,
-            device=device,
-        )
+
+    return _transcribe_openai_whisper(
+        audio_path,
+        output_dir,
+        model_name=resolved_model,
+        language=language,
+        device="cpu",
+    )
 
 
 def _transcribe_faster_whisper(
