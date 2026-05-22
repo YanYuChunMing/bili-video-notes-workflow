@@ -27,8 +27,11 @@ DEFAULT_CONFIG = {
     },
     "screenshot": {
         "enabled": False,
-        "min_interval_seconds": 5,
-        "max_avg_per_minute": 5,
+        "strategy": "learning",
+        "min_interval_seconds": 3,
+        "max_avg_per_minute": 6,
+        "max_images_per_unit": 2,
+        "prefer_after_action_seconds": 1.5,
         "difference_threshold": 0.85,
     },
 }

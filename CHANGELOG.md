@@ -8,6 +8,111 @@
 
 ---
 
+## [1.3.0] - 2026-05-23
+
+### Added
+
+#### 学习单元驱动截图策略（`LearningScreenshotter`）
+
+本版本最重要的更新是引入了全新的**学习单元驱动截图策略**，彻底重构了 `with_images` 模式下的截图逻辑，使输出的带图笔记从"带截图的字幕流水账"升级为"结构化图文教程"。
+
+##### 设计动机
+
+旧版截图策略（`DefaultScreenshotter`）基于 SSIM 画面差异度选帧，只关心"画面有没有变"，不关心"这张图是否有教学价值"。导致：
+- 容易截到转场模糊帧、说话中间态、纯色/纯黑空白画面
+- 优先截取视觉变化大的时刻而非教学信息最丰富的时刻
+- 操作类视频容易漏掉"操作完成后的结果界面"
+- 输出按字幕时间流水插图，缺乏学习步骤结构
+
+##### 架构概览
+
+新策略采用五阶段流水线架构：
+
+```
+Whisper segments → 学习单元构建 → 候选时间生成 → 帧采样评分 → 截图保存 → 结构化Markdown
+```
+
+##### 新增文件
+
+- **`src/learning_units.py`** — 学习单元数据结构与构建逻辑
+  - `LearningUnit` 数据类：包含 `unit_id`、`title`、`start/end` 时间边界、`unit_type`（操作/代码/PPT/结果/概念/总结）、`visual_need`（none/low/medium/high）、`cue_score`、`candidate_times`、`selected_images`
+  - 五大中文 cue 词词典：操作类（28个）、结果类（15个）、代码/视觉类（25个）、PPT/演示类（9个）、结构/过渡类（19个）
+  - `build_learning_units()`：Segments 清洗（过滤语气词/纯标点）→ 短 segment 合并（20-90秒目标）→ 强结构 cue 切分（前8字命中即切）→ cue 词分类与 visual_need 判定 → 标题生成
+  - `generate_candidate_times()`：基础候选（首/中/尾三点）+ 操作类额外候选（cue_time+0.8/1.5/2.5s）+ 结果类额外候选（cue_time+1.0/2.0s + unit.end-0.5s）→ 边界 clamp → 去重合并
+
+- **`src/learning_screenshotter.py`** — 学习单元驱动截图器
+  - `LearningScreenshotter(ScreenshotterInterface)`：继承自现有抽象基类，接口完全兼容
+  - **五维度帧评分系统**（加权综合评分）：
+    | 评分维度 | 权重 | 技术实现 | 作用 |
+    |---------|------|---------|------|
+    | 清晰度评分 | 35% | Laplacian variance 归一化 | 过滤模糊/转场帧 |
+    | 稳定性评分 | 25% | 前后帧 SSIM 取均值 | 避免转场中间态 |
+    | 信息量评分 | 20% | Canny 边缘密度 + 灰度标准差 | 排除纯黑/纯白/空白页 |
+    | Cue 词加成 | 15% | 操作后时间偏好 + 结果结束偏好 | 优先操作结果帧 |
+    | 重复惩罚 | -30% | 与已选帧 SSIM 比较 | 过滤相似画面 |
+  - 每候选时间采样 4 帧（-0.5/0.0/0.5/1.0s 偏移），取评分最高者作为代表帧
+  - 全单元 Top-N 选择，支持 `max_images_per_unit` 限制（默认 2 张/单元）
+  - 全局 `min_interval_seconds` 间隔约束
+  - 异常时自动降级为 `DefaultScreenshotter`
+
+##### 变更前后对比
+
+| 维度 | 旧策略（v1.0-v1.2） | 新策略（v1.3） |
+|------|---------------------|---------------|
+| **核心思想** | 视觉变化检测 | 教学价值评估 |
+| **选帧依据** | SSIM 差异度 >0.85 则保留 | 五维度综合评分排序 |
+| **画面过滤** | 仅 SSIM 去重 | 清晰度+稳定性+信息量+重复惩罚 |
+| **截图偏好** | 变化大的帧优先 | 操作结果、稳定清晰帧优先 |
+| **输出结构** | 字幕时间流水 + 插图 | 学习单元章节 + 图文说明 |
+| **候选策略** | 每 segment 取中点/起点 | 基础三点 + 操作偏差 + 结果偏差 |
+| **每单元控制** | 全局频率限制 | 每单元最多 N 张 + 全局间隔 |
+| **降级处理** | ❌ 无 | ✅ 异常时自动回退旧策略 |
+
+##### 主流程改造
+
+- **策略分发** (`main.py` L122-166)：根据 `config["screenshot"]["strategy"]` 自动选择截图策略，支持 `"learning"`（默认）和 `"visual_change"`（旧策略）两种模式
+- **降级保护**：`LearningScreenshotter` 处理异常时，自动 `try/except` 捕获并回退为 `DefaultScreenshotter`，确保不会导致整个视频处理失败
+- **跨分段坐标转换**：分段内时间戳通过 `offset` 转换为全局坐标，截图路径汇总为 `segment_NNN/images/xxx.jpg` 格式
+- **学习单元跨分段收集**：从各分段的 `learning_units.json` 收集单元数据，叠加 offset 后合并输出全局图文稿
+
+##### 新增 Markdown 输出
+
+- **`build_learning_transcript_with_images()`** (`src/markdown_builder.py` L45-95)：生成 `learning_transcript_with_images.md`，结构如下：
+  - `## N. 学习单元标题` 章节化组织
+  - `> 时间：HH:MM:SS - HH:MM:SS` 时间元信息块
+  - `> 类型：operation | 截图需求：high` 分类标签
+  - 每张截图附 `*截图原因：...（score=0.82）*` 斜体说明
+  - 无图单元保留文字内容，确保内容不断裂
+  - 结尾统计：`共 N 个学习单元，M 张截图`
+- **`save_learning_units_json()`** (`src/markdown_builder.py` L98-119)：生成完整 `learning_units.json` 调试输出，包含所有单元的分类、评分、候选时间和选中图片信息
+- **旧 `transcript_with_images.md` 保留不变**，确保向后兼容
+
+#### 配置变更
+
+- `[screenshot]` 节新增字段：
+  - `strategy = "learning"` — 截图策略选择（`"learning"` 或 `"visual_change"`）
+  - `max_images_per_unit = 2` — 每个学习单元最多截图数量
+  - `prefer_after_action_seconds = 1.5` — 操作词后偏好偏移秒数
+- `[screenshot]` 节调整字段：
+  - `min_interval_seconds`：`5` → `3`
+  - `max_avg_per_minute`：`5` → `6`
+- `config.example.toml` 同步更新
+- `DEFAULT_CONFIG` 同步更新（`src/config_loader.py` L28-36）
+
+#### 设计文档
+
+- `docs/learning_screenshot_strategy/IMPLEMENTATION_PROMPT.md` — 完整技术规格文档（~1150行），涵盖：
+  - 分块实现策略与测试要求
+  - `LearningUnit` 数据结构定义
+  - Cue 词词典与分类算法
+  - 候选时间生成算法
+  - 帧评分多维度数学公式
+  - Markdown 输出格式规范
+  - 端到端集成要求与验收标准
+  - 13 步分块实现检查表
+
+---
+
 ## [1.2.0] - 2026-05-22
 
 ### Added
@@ -120,6 +225,7 @@
 
 ---
 
+[1.3.0]: https://github.com/YanYuChunMing/bili-video-notes-workflow/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/YanYuChunMing/bili-video-notes-workflow/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/YanYuChunMing/bili-video-notes-workflow/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/YanYuChunMing/bili-video-notes-workflow/releases/tag/v1.0.0

@@ -16,8 +16,45 @@ from src import mindmap
 from src import screenshotter
 from src import markdown_builder
 from src import video_splitter
+from src.learning_screenshotter import LearningScreenshotter
 
 logger = logging.getLogger("main")
+
+
+def _build_learning_transcript_output(units_data: list, output_dir: str, title: str = ""):
+    from src.learning_units import LearningUnit
+
+    units = []
+    for u in units_data:
+        imgs = []
+        for img in u.get("selected_images", []):
+            seg_path = img.get("seg_path", img.get("path", ""))
+            ts_global = img.get("timestamp_global", img.get("timestamp", 0))
+            imgs.append({
+                "timestamp": ts_global,
+                "path": seg_path,
+                "reason": img.get("reason", ""),
+                "score": img.get("score", 0),
+            })
+
+        lu = LearningUnit(
+            unit_id=u.get("unit_id", ""),
+            title=u.get("title", ""),
+            start=u.get("start", 0) + u.get("offset", 0),
+            end=u.get("end", 0) + u.get("offset", 0),
+            text=u.get("text", ""),
+            unit_type=u.get("unit_type", "unknown"),
+            visual_need=u.get("visual_need", "none"),
+            cue_score=u.get("cue_score", 0),
+            candidate_times=u.get("candidate_times", []),
+            selected_images=imgs,
+        )
+        units.append(lu)
+
+    markdown_builder.build_learning_transcript_with_images(
+        units, output_dir, title
+    )
+    markdown_builder.save_learning_units_json(units, output_dir)
 
 
 def process_single_video(
@@ -84,6 +121,9 @@ def process_single_video(
 
         if screenshot_enabled and video_segments:
             all_screenshots = {}
+            all_learning_units = []
+            strategy = config["screenshot"].get("strategy", "learning")
+
             for seg in video_segments:
                 offset = seg["start_offset"]
                 seg_video_path = seg["path"]
@@ -103,13 +143,27 @@ def process_single_video(
                 seg_output_dir = os.path.join(output_dir, f"segment_{seg_idx:03d}")
                 os.makedirs(seg_output_dir, exist_ok=True)
 
-                ss = screenshotter.DefaultScreenshotter(config)
+                if strategy == "visual_change":
+                    ss = screenshotter.DefaultScreenshotter(config)
+                else:
+                    ss = LearningScreenshotter(config)
+
                 ss.enabled = True
-                seg_screenshots = ss.process(
-                    seg_video_path,
-                    seg_segments_path,
-                    seg_output_dir,
-                )
+                try:
+                    seg_screenshots = ss.process(
+                        seg_video_path,
+                        seg_segments_path,
+                        seg_output_dir,
+                    )
+                except Exception as e:
+                    logger.warning(f"截图策略 '{strategy}' 失败，降级为 DefaultScreenshotter: {e}")
+                    ss_fallback = screenshotter.DefaultScreenshotter(config)
+                    ss_fallback.enabled = True
+                    seg_screenshots = ss_fallback.process(
+                        seg_video_path,
+                        seg_segments_path,
+                        seg_output_dir,
+                    )
 
                 for ts, img_path in seg_screenshots.items():
                     global_ts = ts + offset
@@ -117,12 +171,30 @@ def process_single_video(
                         f"segment_{seg_idx:03d}/{img_path}"
                     )
 
+                learning_units_json = os.path.join(seg_output_dir, "learning_units.json")
+                if os.path.exists(learning_units_json):
+                    seg_units = utils.load_json(learning_units_json, [])
+                    for u in seg_units:
+                        u["offset"] = offset
+                        for img in u.get("selected_images", []):
+                            img["timestamp_global"] = img["timestamp"] + offset
+                            img["seg_path"] = f"segment_{seg_idx:03d}/{img['path']}"
+                    all_learning_units.extend(seg_units)
+
             if all_screenshots:
                 markdown_builder.build_transcript_with_images(
                     segments, all_screenshots,
                     os.path.join(output_dir, "results"), title,
                 )
                 logger.info(f"[{index}] 带截图文字稿已生成")
+
+            if all_learning_units:
+                _build_learning_transcript_output(
+                    all_learning_units,
+                    os.path.join(output_dir, "results"),
+                    title,
+                )
+                logger.info(f"[{index}] 学习单元驱动图文稿已生成")
 
             if len(video_segments) > 1:
                 original_duration = sum(
