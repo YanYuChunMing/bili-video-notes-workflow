@@ -7,4 +7,3 @@ tomli-w>=1.0.0
 opencc>=1.1.0
 opencv-python>=4.8.0
 scikit-image>=0.22.0
-streamlit>=1.28.0

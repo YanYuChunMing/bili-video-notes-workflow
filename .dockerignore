@@ -26,3 +26,5 @@ failed.json
 .DS_Store
 Thumbs.db
 Desktop.ini
+.trae/
+*.log

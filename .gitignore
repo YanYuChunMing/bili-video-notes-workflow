@@ -27,6 +27,12 @@ ENV/
 Thumbs.db
 Desktop.ini
 
+# IDE / Tools
+.trae/
+
+# Logs
+*.log
+
 # Project Specific
 config.toml
 .env

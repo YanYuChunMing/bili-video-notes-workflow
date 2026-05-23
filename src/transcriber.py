@@ -6,7 +6,8 @@ import site
 _nvidia_dll_dirs = []
 try:
     for sp in site.getsitepackages():
-        for sub in ("nvidia\\cublas\\bin", "nvidia\\cuda_runtime\\bin"):
+        for sub in ("nvidia\\cublas\\bin", "nvidia\\cuda_runtime\\bin",
+                    "nvidia\\cublas", "nvidia\\cuda_runtime"):
             d = os.path.join(sp, sub)
             if os.path.isdir(d):
                 os.add_dll_directory(d)
