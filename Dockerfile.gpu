@@ -23,9 +23,9 @@ RUN pip install --no-cache-dir --break-system-packages \
 
 COPY . .
 
-RUN mkdir -p outputs downloads logs
+RUN mkdir -p outputs downloads logs secrets
 
-VOLUME ["/app/outputs", "/app/downloads", "/app/logs"]
+VOLUME ["/app/outputs", "/app/downloads", "/app/logs", "/app/secrets"]
 
 ENV NVIDIA_VISIBLE_DEVICES=all
 

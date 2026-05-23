@@ -8,12 +8,14 @@ services:
       - ./outputs:/app/outputs
       - ./downloads:/app/downloads
       - ./logs:/app/logs
+      - ./secrets:/app/secrets
       - ./links.txt:/app/links.txt:ro
       - ./links_with_images.txt:/app/links_with_images.txt:ro
       - ./config.toml:/app/config.toml:ro
-      - ./.env:/app/.env:ro
     environment:
       - PYTHONUNBUFFERED=1
+      - BILI_SECRET_DB=/app/secrets/local_secrets.sqlite3
+      - BILI_SECRET_PASSPHRASE=${BILI_SECRET_PASSPHRASE:-}
     command: ["--task", "basic_test"]
 
   bili-video-web:
@@ -29,12 +31,14 @@ services:
       - ./outputs:/app/outputs
       - ./downloads:/app/downloads
       - ./logs:/app/logs
+      - ./secrets:/app/secrets
       - ./links.txt:/app/links.txt:ro
       - ./links_with_images.txt:/app/links_with_images.txt:ro
       - ./config.toml:/app/config.toml
-      - ./.env:/app/.env
     environment:
       - PYTHONUNBUFFERED=1
+      - BILI_SECRET_DB=/app/secrets/local_secrets.sqlite3
+      - BILI_SECRET_PASSPHRASE=${BILI_SECRET_PASSPHRASE:-}
 
   bili-video-gpu:
     build:
@@ -47,13 +51,15 @@ services:
       - ./outputs:/app/outputs
       - ./downloads:/app/downloads
       - ./logs:/app/logs
+      - ./secrets:/app/secrets
       - ./links.txt:/app/links.txt:ro
       - ./links_with_images.txt:/app/links_with_images.txt:ro
       - ./config.toml:/app/config.toml:ro
-      - ./.env:/app/.env:ro
     environment:
       - PYTHONUNBUFFERED=1
       - NVIDIA_VISIBLE_DEVICES=all
+      - BILI_SECRET_DB=/app/secrets/local_secrets.sqlite3
+      - BILI_SECRET_PASSPHRASE=${BILI_SECRET_PASSPHRASE:-}
     deploy:
       resources:
         reservations:

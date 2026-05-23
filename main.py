@@ -313,7 +313,9 @@ def main():
     )
     args = parser.parse_args()
 
-    config = config_loader.load_config(args.config)
+    from app.runtime_config import load_runtime_config
+
+    config = load_runtime_config(args.config)
 
     if args.input and args.mode:
         task_config = {

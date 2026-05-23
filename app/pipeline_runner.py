@@ -8,6 +8,7 @@ from datetime import datetime
 from src import config_loader
 from src import utils
 from src import link_parser
+from app.runtime_config import inject_runtime_secrets
 
 logger = logging.getLogger("pipeline_runner")
 
@@ -45,6 +46,7 @@ class PipelineRunner:
     def run_single(self, url: str, config: dict, mode: str = "basic") -> dict:
         from main import process_single_video
 
+        config = inject_runtime_secrets(config)
         task_config = {"mode": mode}
         project_root = config_loader.get_project_root()
 

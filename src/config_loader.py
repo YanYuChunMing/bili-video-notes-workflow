@@ -1,8 +1,6 @@
 import os
-import sys
 import tomllib
 
-from dotenv import load_dotenv
 
 DEFAULT_CONFIG = {
     "project": {
@@ -24,6 +22,7 @@ DEFAULT_CONFIG = {
         "max_chunk_minutes": 12,
         "max_retries": 3,
         "retry_delay_seconds": 5,
+        "api_key": "",
     },
     "screenshot": {
         "enabled": False,
@@ -58,26 +57,10 @@ def load_config(config_path: str = "config.toml") -> dict:
         except Exception as e:
             print(f"[WARN] 读取 config.toml 失败: {e}，使用默认配置")
 
-    env_path = os.path.join(os.path.dirname(os.path.abspath(config_path)) or ".", ".env")
-    if os.path.exists(env_path):
-        load_dotenv(env_path)
-
-    config["deepseek"]["api_key"] = os.getenv("DEEPSEEK_API_KEY", "")
-    config["deepseek"]["base_url"] = os.getenv(
-        "DEEPSEEK_BASE_URL", config["deepseek"]["base_url"]
-    )
-
-    api_key = config["deepseek"]["api_key"]
-    if api_key:
-        try:
-            api_key.encode("ascii")
-        except UnicodeEncodeError:
-            print("[WARN] DeepSeek API Key 包含非 ASCII 字符，将被视为无效")
-            config["deepseek"]["api_key"] = ""
-        if any(pl in api_key.lower() for pl in ("请替换", "api密钥填这里", "your_key", "your-api-key")):
-            print("[WARN] DeepSeek API Key 似乎仍是占位符，将被视为无效")
-            config["deepseek"]["api_key"] = ""
-
+    # API Key is intentionally not loaded from .env or config.toml.
+    # Runtime code injects it from the local encrypted secret database.
+    config.setdefault("deepseek", {})
+    config["deepseek"]["api_key"] = ""
     return config
 
 

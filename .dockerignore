@@ -15,6 +15,9 @@ outputs/
 downloads/
 logs/
 temp/
+secrets/
+*.sqlite3
+local_secrets.sqlite3
 config.toml
 .env
 processed.json

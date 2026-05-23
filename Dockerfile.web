@@ -13,9 +13,9 @@ RUN pip install --no-cache-dir -r requirements.txt -i https://pypi.tuna.tsinghua
 
 COPY . .
 
-RUN mkdir -p outputs downloads logs
+RUN mkdir -p outputs downloads logs secrets
 
-VOLUME ["/app/outputs", "/app/downloads", "/app/logs"]
+VOLUME ["/app/outputs", "/app/downloads", "/app/logs", "/app/secrets"]
 
 EXPOSE 8501
 

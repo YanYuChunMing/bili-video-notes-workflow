@@ -12,7 +12,11 @@ class FileManager:
         if not os.path.isdir(output_base):
             return []
         dirs = []
-        for entry in sorted(os.listdir(output_base)):
+        for entry in sorted(
+            os.listdir(output_base),
+            key=lambda e: os.path.getmtime(os.path.join(output_base, e)),
+            reverse=True,
+        ):
             full = os.path.join(output_base, entry)
             if not os.path.isdir(full):
                 continue
@@ -131,17 +135,27 @@ class FileManager:
     @staticmethod
     def find_screenshot_files(output_dir: str) -> list[dict]:
         screenshots = []
-        for seg_dir_name in sorted(os.listdir(output_dir)):
-            if not seg_dir_name.startswith("segment_"):
-                continue
-            seg_dir = os.path.join(output_dir, seg_dir_name)
-            if not os.path.isdir(seg_dir):
-                continue
-            for img in sorted(os.listdir(seg_dir)):
-                if img.lower().endswith((".png", ".jpg", ".jpeg", ".webp")):
-                    screenshots.append({
-                        "segment": seg_dir_name,
-                        "filename": img,
-                        "path": os.path.join(seg_dir, img),
-                    })
+        patterns = [
+            os.path.join(output_dir, "segment_*", "images", "*"),
+            os.path.join(output_dir, "segment_*", "*"),
+            os.path.join(output_dir, "images", "*"),
+        ]
+        seen = set()
+        for pattern in patterns:
+            for full in sorted(glob.glob(pattern)):
+                if not os.path.isfile(full):
+                    continue
+                if not full.lower().endswith((".png", ".jpg", ".jpeg", ".webp")):
+                    continue
+                if full in seen:
+                    continue
+                seen.add(full)
+                rel = os.path.relpath(full, output_dir)
+                parts = rel.split(os.sep)
+                screenshots.append({
+                    "segment": parts[0] if parts else "",
+                    "filename": os.path.basename(full),
+                    "path": full,
+                    "relative": rel,
+                })
         return screenshots

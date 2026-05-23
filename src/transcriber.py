@@ -2,15 +2,42 @@ import os
 import json
 import logging
 import site
+import sys
 
 _nvidia_dll_dirs = []
 try:
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    candidate_roots = []
+
     for sp in site.getsitepackages():
-        for sub in ("nvidia\\cublas\\bin", "nvidia\\cuda_runtime\\bin"):
+        candidate_roots.append(sp)
+
+    candidate_roots.extend([
+        os.path.join(sys.prefix, "Lib", "site-packages"),
+        os.path.join(project_root, "venv", "Lib", "site-packages"),
+        os.path.join(project_root, ".venv", "Lib", "site-packages"),
+    ])
+
+    seen_roots = set()
+    for sp in candidate_roots:
+        sp = os.path.abspath(sp)
+        if sp in seen_roots:
+            continue
+        seen_roots.add(sp)
+        for sub in (
+            "nvidia\\cublas\\bin",
+            "nvidia\\cuda_runtime\\bin",
+            "nvidia\\cudnn\\bin",
+            "ctranslate2",
+        ):
             d = os.path.join(sp, sub)
             if os.path.isdir(d):
-                os.add_dll_directory(d)
-                _nvidia_dll_dirs.append(d)
+                handle = os.add_dll_directory(d)
+                _nvidia_dll_dirs.append((d, handle))
+                current_path = os.environ.get("PATH", "")
+                path_parts = current_path.split(os.pathsep) if current_path else []
+                if d not in path_parts:
+                    os.environ["PATH"] = d + os.pathsep + current_path
 except Exception:
     pass
 
@@ -136,6 +163,11 @@ def _transcribe_faster_whisper(
     device: str = "cuda",
     compute_type: str = "auto",
 ) -> dict:
+    if not _FASTER_WHISPER_AVAILABLE:
+        raise RuntimeError("faster-whisper 不可用")
+
+    from faster_whisper import WhisperModel as FWModel  # type: ignore[no-redef]
+
     if compute_type == "auto":
         compute_type = "float16" if device == "cuda" else "int8"
     logger.info(
@@ -143,7 +175,7 @@ def _transcribe_faster_whisper(
         f"(device={device}, compute_type={compute_type})"
     )
 
-    model = FasterWhisperModel(
+    model = FWModel(
         model_name,
         device=device,
         compute_type=compute_type,
@@ -205,8 +237,8 @@ def _transcribe_openai_whisper(
 
     logger.info(f"转录完成，共 {len(result.get('segments', []))} 个片段")
 
-    raw_text = result["text"].strip()
-    segments = result.get("segments", [])
+    raw_text: str = str(result.get("text", "")).strip()
+    segments: list[dict] = result.get("segments", [])  # type: ignore[assignment]
 
     raw_text = _convert_t2s(raw_text)
     for seg in segments:

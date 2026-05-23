@@ -34,6 +34,9 @@ outputs/
 logs/
 downloads/
 temp/
+secrets/
+*.sqlite3
+local_secrets.sqlite3
 processed.json
 failed.json
 
