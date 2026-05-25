@@ -16,6 +16,18 @@ services:
       - PYTHONUNBUFFERED=1
     command: ["--task", "basic_test"]
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    image: bili-video-frontend:latest
+    container_name: bili-video-frontend
+    profiles: ["frontend", ""]
+    ports:
+      - "80:80"
+    depends_on:
+      - bili-video
+
   bili-video-gpu:
     build:
       context: .

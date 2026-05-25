@@ -8,6 +8,63 @@
 
 ---
 
+## [1.4.0] - 2026-05-25
+
+### Added
+
+#### Web 平台正式上线
+
+本版本的核心变更是新增基于 **FastAPI + React 19** 的 Web 图形化操作平台，以及基于 **OpenAPI + openapi-typescript** 的前后端 API 契约层。
+
+##### 后端 Web API (`web/`)
+
+- **`web/main.py`** — FastAPI 应用工厂
+  - `create_app()` 工厂函数，返回配置完整的 FastAPI 实例
+  - CORS 中间件，允许所有来源（开发/内网部署场景）
+  - 自动挂载前端构建产物（`frontend/dist/`）为静态文件，启用 SPA fallback
+  - `/api/status` 健康检查端点
+  - `_inject_openapi_schemas()` — 将未直接作为 `response_model` 引用的 Pydantic 模型注入 `/openapi.json`，确保 openapi-typescript 能发现所有前端需要的类型
+  - `_fix_refs()` — 修复 Pydantic `$defs` 与 OpenAPI `#/components/schemas` 的 `$ref` 路径差异
+
+- **`web/models.py`** — 全部 API 数据模型（Pydantic v2）
+  - `TaskMode` / `TaskStatus` 枚举
+  - `TaskInfo`（12 字段）、`TaskCreateRequest`
+  - `ApiResponse[T]` 泛型统一响应包装（code + message + data）
+  - `ConfigUpdateRequest`（12 可选字段）
+  - `ConfigDisplay` + 4 个子模型：`ProjectConfig` / `WhisperConfig` / `DeepseekConfig` / `ScreenshotConfig`
+  - `ApiKeyStatus` / `VideoMetadata`
+
+- **`web/task_manager.py`** — 内存任务管理器：线程安全的任务 CRUD + 后台 daemon 线程执行 `process_single_video()` + progress_callback 实时状态更新 + 删除时清理产物目录
+
+- **路由模块**：
+  - `web/routes/tasks.py` — 任务 CRUD API（POST/GET 创建与分页列表、GET/DELETE 单任务）
+  - `web/routes/outputs.py` — 产物文件读取 API（7 端点，统一包裹 ApiResponse JSON）
+  - `web/routes/config.py` — 配置管理 API（GET/PUT config + GET check API Key）
+  - `web/routes/ws.py` — WebSocket 实时进度推送（2s 轮询 + 变化检测）
+  - `web/routes/media.py` — 产物静态文件服务（路径穿越防护 + 403 拦截）
+
+##### 前端 SPA (`frontend/`)
+
+- **技术栈**：React 19 + TypeScript 6 + Vite 8 + Tailwind CSS 4
+- **7 个页面**：Dashboard / TaskList / TaskDetail / Note / Mindmap / ImageNotes / Settings
+- **404 catch-all 路由**
+- **共享模块**：`constants/taskStatus.ts`、`hooks/useAsyncEffect.ts`、service 层（axios 封装）
+
+##### API 契约层
+
+- Pydantic → OpenAPI → openapi-typescript → TypeScript 完整类型生成链路
+- `frontend/scripts/generate-types.ts` — 从 OpenAPI schema 自动生成 TS 类型
+- `frontend/scripts/dump-openapi.ts` — OpenAPI schema 快照导出
+- `frontend/openapi.json` + `frontend/src/types/api.generated.ts` 提交 Git
+
+##### 文档
+
+- `docs/API.md` — 完整 REST API + WebSocket 参考文档（15+ 端点）
+- `docs/WEB_ARCHITECTURE.md` — Web 平台架构设计文档
+- `PROJECT_FRAMEWORK.md` — 新增第 7 章"Web 平台"、版本历史更新
+
+---
+
 ## [1.3.0] - 2026-05-23
 
 ### Added
@@ -225,6 +282,7 @@ Whisper segments → 学习单元构建 → 候选时间生成 → 帧采样评�
 
 ---
 
+[1.4.0]: https://github.com/YanYuChunMing/bili-video-notes-workflow/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/YanYuChunMing/bili-video-notes-workflow/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/YanYuChunMing/bili-video-notes-workflow/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/YanYuChunMing/bili-video-notes-workflow/compare/v1.0.0...v1.1.0

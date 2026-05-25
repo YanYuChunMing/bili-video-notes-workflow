@@ -1,0 +1,1294 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Bili Video Notes API",
+    "description": "B站视频自动笔记生成工作流 Web API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/tasks": {
+      "post": {
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Create Task",
+        "operationId": "create_task_api_tasks_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "tasks"
+        ],
+        "summary": "List Tasks",
+        "operationId": "list_tasks_api_tasks_get",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "title": "Page Size"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tasks/{task_id}": {
+      "get": {
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Get Task",
+        "operationId": "get_task_api_tasks__task_id__get",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Delete Task",
+        "operationId": "delete_task_api_tasks__task_id__delete",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/outputs/{task_id}/summary": {
+      "get": {
+        "tags": [
+          "outputs"
+        ],
+        "summary": "Get Summary",
+        "operationId": "get_summary_api_outputs__task_id__summary_get",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/outputs/{task_id}/mindmap": {
+      "get": {
+        "tags": [
+          "outputs"
+        ],
+        "summary": "Get Mindmap",
+        "operationId": "get_mindmap_api_outputs__task_id__mindmap_get",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/outputs/{task_id}/mindmap.html": {
+      "get": {
+        "tags": [
+          "outputs"
+        ],
+        "summary": "Get Mindmap Html",
+        "operationId": "get_mindmap_html_api_outputs__task_id__mindmap_html_get",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/outputs/{task_id}/transcript": {
+      "get": {
+        "tags": [
+          "outputs"
+        ],
+        "summary": "Get Transcript",
+        "operationId": "get_transcript_api_outputs__task_id__transcript_get",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/outputs/{task_id}/transcript-punct": {
+      "get": {
+        "tags": [
+          "outputs"
+        ],
+        "summary": "Get Transcript Punct",
+        "operationId": "get_transcript_punct_api_outputs__task_id__transcript_punct_get",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/outputs/{task_id}/transcript-images": {
+      "get": {
+        "tags": [
+          "outputs"
+        ],
+        "summary": "Get Transcript Images",
+        "operationId": "get_transcript_images_api_outputs__task_id__transcript_images_get",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/outputs/{task_id}/metadata": {
+      "get": {
+        "tags": [
+          "outputs"
+        ],
+        "summary": "Get Metadata",
+        "operationId": "get_metadata_api_outputs__task_id__metadata_get",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/config": {
+      "get": {
+        "tags": [
+          "config"
+        ],
+        "summary": "Get Config",
+        "operationId": "get_config_api_config_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "config"
+        ],
+        "summary": "Update Config",
+        "operationId": "update_config_api_config_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfigUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/config/check": {
+      "get": {
+        "tags": [
+          "config"
+        ],
+        "summary": "Check Api Key",
+        "operationId": "check_api_key_api_config_check_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/media/{task_id}/{filepath}": {
+      "get": {
+        "tags": [
+          "media"
+        ],
+        "summary": "Serve Media",
+        "operationId": "serve_media_media__task_id___filepath__get",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          },
+          {
+            "name": "filepath",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Filepath"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/status": {
+      "get": {
+        "summary": "Health Check",
+        "operationId": "health_check_api_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ApiResponse": {
+        "properties": {
+          "code": {
+            "type": "integer",
+            "title": "Code",
+            "default": 0
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "success"
+          },
+          "data": {
+            "anyOf": [
+              {},
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "title": "ApiResponse"
+      },
+      "ConfigUpdateRequest": {
+        "properties": {
+          "whisper_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Whisper Model"
+          },
+          "whisper_language": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Whisper Language"
+          },
+          "whisper_device": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Whisper Device"
+          },
+          "whisper_compute_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Whisper Compute Type"
+          },
+          "deepseek_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deepseek Model"
+          },
+          "deepseek_base_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deepseek Base Url"
+          },
+          "deepseek_api_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deepseek Api Key"
+          },
+          "screenshot_enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Screenshot Enabled"
+          },
+          "screenshot_strategy": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Screenshot Strategy"
+          },
+          "screenshot_min_interval_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Screenshot Min Interval Seconds"
+          },
+          "screenshot_max_avg_per_minute": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Screenshot Max Avg Per Minute"
+          },
+          "screenshot_difference_threshold": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Screenshot Difference Threshold"
+          }
+        },
+        "type": "object",
+        "title": "ConfigUpdateRequest"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "TaskCreateRequest": {
+        "properties": {
+          "urls": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Urls"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/TaskMode",
+            "default": "basic"
+          }
+        },
+        "type": "object",
+        "required": [
+          "urls"
+        ],
+        "title": "TaskCreateRequest"
+      },
+      "TaskMode": {
+        "type": "string",
+        "enum": [
+          "basic",
+          "with_images"
+        ],
+        "title": "TaskMode"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "TaskInfo": {
+        "$defs": {
+          "TaskMode": {
+            "enum": [
+              "basic",
+              "with_images"
+            ],
+            "title": "TaskMode",
+            "type": "string"
+          },
+          "TaskStatus": {
+            "enum": [
+              "pending",
+              "downloading",
+              "transcribing",
+              "cleaning",
+              "summarizing",
+              "mindmap",
+              "screenshot",
+              "completed",
+              "failed"
+            ],
+            "title": "TaskStatus",
+            "type": "string"
+          }
+        },
+        "properties": {
+          "task_id": {
+            "title": "Task Id",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          },
+          "title": {
+            "default": "",
+            "title": "Title",
+            "type": "string"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/TaskMode"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TaskStatus",
+            "default": "pending"
+          },
+          "progress": {
+            "default": 0.0,
+            "title": "Progress",
+            "type": "number"
+          },
+          "stage_message": {
+            "default": "",
+            "title": "Stage Message",
+            "type": "string"
+          },
+          "output_dir": {
+            "default": "",
+            "title": "Output Dir",
+            "type": "string"
+          },
+          "error_message": {
+            "default": "",
+            "title": "Error Message",
+            "type": "string"
+          },
+          "created_at": {
+            "default": "",
+            "title": "Created At",
+            "type": "string"
+          },
+          "completed_at": {
+            "default": "",
+            "title": "Completed At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "task_id",
+          "url",
+          "mode"
+        ],
+        "title": "TaskInfo",
+        "type": "object"
+      },
+      "ConfigDisplay": {
+        "$defs": {
+          "DeepseekConfig": {
+            "properties": {
+              "model": {
+                "title": "Model",
+                "type": "string"
+              },
+              "base_url": {
+                "title": "Base Url",
+                "type": "string"
+              },
+              "has_api_key": {
+                "default": false,
+                "title": "Has Api Key",
+                "type": "boolean"
+              },
+              "max_chunk_minutes": {
+                "default": 12,
+                "title": "Max Chunk Minutes",
+                "type": "integer"
+              }
+            },
+            "required": [
+              "model",
+              "base_url"
+            ],
+            "title": "DeepseekConfig",
+            "type": "object"
+          },
+          "ProjectConfig": {
+            "properties": {
+              "name": {
+                "title": "Name",
+                "type": "string"
+              },
+              "output_dir": {
+                "title": "Output Dir",
+                "type": "string"
+              },
+              "log_dir": {
+                "title": "Log Dir",
+                "type": "string"
+              },
+              "temp_dir": {
+                "title": "Temp Dir",
+                "type": "string"
+              },
+              "download_dir": {
+                "title": "Download Dir",
+                "type": "string"
+              }
+            },
+            "required": [
+              "name",
+              "output_dir",
+              "log_dir",
+              "temp_dir",
+              "download_dir"
+            ],
+            "title": "ProjectConfig",
+            "type": "object"
+          },
+          "ScreenshotConfig": {
+            "properties": {
+              "enabled": {
+                "default": false,
+                "title": "Enabled",
+                "type": "boolean"
+              },
+              "strategy": {
+                "default": "learning",
+                "title": "Strategy",
+                "type": "string"
+              },
+              "min_interval_seconds": {
+                "default": 3.0,
+                "title": "Min Interval Seconds",
+                "type": "number"
+              },
+              "max_avg_per_minute": {
+                "default": 6.0,
+                "title": "Max Avg Per Minute",
+                "type": "number"
+              },
+              "max_images_per_unit": {
+                "default": 2,
+                "title": "Max Images Per Unit",
+                "type": "integer"
+              },
+              "difference_threshold": {
+                "default": 0.85,
+                "title": "Difference Threshold",
+                "type": "number"
+              }
+            },
+            "title": "ScreenshotConfig",
+            "type": "object"
+          },
+          "WhisperConfig": {
+            "properties": {
+              "model": {
+                "title": "Model",
+                "type": "string"
+              },
+              "language": {
+                "title": "Language",
+                "type": "string"
+              },
+              "device": {
+                "title": "Device",
+                "type": "string"
+              },
+              "compute_type": {
+                "default": "auto",
+                "title": "Compute Type",
+                "type": "string"
+              }
+            },
+            "required": [
+              "model",
+              "language",
+              "device"
+            ],
+            "title": "WhisperConfig",
+            "type": "object"
+          }
+        },
+        "properties": {
+          "project": {
+            "$ref": "#/components/schemas/ProjectConfig"
+          },
+          "whisper": {
+            "$ref": "#/components/schemas/WhisperConfig"
+          },
+          "deepseek": {
+            "$ref": "#/components/schemas/DeepseekConfig"
+          },
+          "screenshot": {
+            "$ref": "#/components/schemas/ScreenshotConfig"
+          }
+        },
+        "required": [
+          "project",
+          "whisper",
+          "deepseek",
+          "screenshot"
+        ],
+        "title": "ConfigDisplay",
+        "type": "object"
+      },
+      "WhisperConfig": {
+        "properties": {
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "language": {
+            "title": "Language",
+            "type": "string"
+          },
+          "device": {
+            "title": "Device",
+            "type": "string"
+          },
+          "compute_type": {
+            "default": "auto",
+            "title": "Compute Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "model",
+          "language",
+          "device"
+        ],
+        "title": "WhisperConfig",
+        "type": "object"
+      },
+      "DeepseekConfig": {
+        "properties": {
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "base_url": {
+            "title": "Base Url",
+            "type": "string"
+          },
+          "has_api_key": {
+            "default": false,
+            "title": "Has Api Key",
+            "type": "boolean"
+          },
+          "max_chunk_minutes": {
+            "default": 12,
+            "title": "Max Chunk Minutes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "model",
+          "base_url"
+        ],
+        "title": "DeepseekConfig",
+        "type": "object"
+      },
+      "ScreenshotConfig": {
+        "properties": {
+          "enabled": {
+            "default": false,
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "strategy": {
+            "default": "learning",
+            "title": "Strategy",
+            "type": "string"
+          },
+          "min_interval_seconds": {
+            "default": 3.0,
+            "title": "Min Interval Seconds",
+            "type": "number"
+          },
+          "max_avg_per_minute": {
+            "default": 6.0,
+            "title": "Max Avg Per Minute",
+            "type": "number"
+          },
+          "max_images_per_unit": {
+            "default": 2,
+            "title": "Max Images Per Unit",
+            "type": "integer"
+          },
+          "difference_threshold": {
+            "default": 0.85,
+            "title": "Difference Threshold",
+            "type": "number"
+          }
+        },
+        "title": "ScreenshotConfig",
+        "type": "object"
+      },
+      "ProjectConfig": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "output_dir": {
+            "title": "Output Dir",
+            "type": "string"
+          },
+          "log_dir": {
+            "title": "Log Dir",
+            "type": "string"
+          },
+          "temp_dir": {
+            "title": "Temp Dir",
+            "type": "string"
+          },
+          "download_dir": {
+            "title": "Download Dir",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "output_dir",
+          "log_dir",
+          "temp_dir",
+          "download_dir"
+        ],
+        "title": "ProjectConfig",
+        "type": "object"
+      },
+      "ApiKeyStatus": {
+        "properties": {
+          "valid": {
+            "title": "Valid",
+            "type": "boolean"
+          },
+          "message": {
+            "default": "",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "valid"
+        ],
+        "title": "ApiKeyStatus",
+        "type": "object"
+      },
+      "VideoMetadata": {
+        "properties": {
+          "title": {
+            "default": "",
+            "title": "Title",
+            "type": "string"
+          },
+          "duration": {
+            "default": 0.0,
+            "title": "Duration",
+            "type": "number"
+          },
+          "uploader": {
+            "default": "",
+            "title": "Uploader",
+            "type": "string"
+          },
+          "upload_date": {
+            "default": "",
+            "title": "Upload Date",
+            "type": "string"
+          },
+          "description": {
+            "default": "",
+            "title": "Description",
+            "type": "string"
+          },
+          "webpage_url": {
+            "default": "",
+            "title": "Webpage Url",
+            "type": "string"
+          }
+        },
+        "title": "VideoMetadata",
+        "type": "object"
+      },
+      "TaskStatus": {
+        "enum": [
+          "pending",
+          "downloading",
+          "transcribing",
+          "cleaning",
+          "summarizing",
+          "mindmap",
+          "screenshot",
+          "completed",
+          "failed"
+        ],
+        "title": "TaskStatus",
+        "type": "string"
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8000"
+    }
+  ]
+}

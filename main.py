@@ -62,16 +62,26 @@ def process_single_video(
     task_config: dict,
     config: dict,
     index: int,
+    progress_callback: callable = None,
 ) -> bool:
     mode = task_config.get("mode", "basic")
     with_images = mode == "with_images"
     screenshot_enabled = config["screenshot"].get("enabled", False) or with_images
+
+    def _progress(stage: str, message: str, progress: float):
+        if progress_callback:
+            try:
+                progress_callback(stage, message, progress)
+            except Exception:
+                pass
 
     logger.info(f"[{index}] ===== 开始处理: {url} (mode={mode}) =====")
 
     try:
         download_dir = config_loader.resolve_path(config, "download_dir")
         output_base = config_loader.resolve_path(config, "output_dir")
+
+        _progress("downloading", "开始下载视频...", 0.0)
 
         if with_images or screenshot_enabled:
             result = downloader.download_video(url, "", download_dir)
@@ -93,6 +103,8 @@ def process_single_video(
                     shutil.copy2(audio_path, audio_relocate)
                     audio_path = audio_relocate
 
+        _progress("transcribing", "正在语音转录...", 0.15)
+
         transcribe_result = transcriber.transcribe(
             audio_path,
             output_dir,
@@ -105,19 +117,27 @@ def process_single_video(
         raw_text = transcribe_result["text"]
         segments = transcribe_result["segments"]
 
+        _progress("cleaning", "正在整理文字稿...", 0.35)
+
         punct_output_path = os.path.join(output_dir, "results", "transcript_with_punct.txt")
         cleaned_text = text_cleaner.clean_transcript_with_punctuation(
             config, raw_text, punct_output_path
         )
 
+        _progress("summarizing", "正在生成学习笔记...", 0.45)
+
         summary_output_path = os.path.join(output_dir, "results", "summary.md")
         summarizer.generate_summary(config, cleaned_text, summary_output_path)
+
+        _progress("mindmap", "正在生成思维导图...", 0.60)
 
         mindmap.generate_mindmap(
             config,
             cleaned_text,
             os.path.join(output_dir, "results"),
         )
+
+        _progress("screenshot", "正在截图...", 0.75) if screenshot_enabled else None
 
         if screenshot_enabled and video_segments:
             all_screenshots = {}
@@ -286,6 +306,8 @@ def main():
     parser = argparse.ArgumentParser(
         description="B站视频自动笔记生成工作流"
     )
+    subparsers = parser.add_subparsers(dest="command")
+
     parser.add_argument(
         "--task",
         type=str,
@@ -311,7 +333,23 @@ def main():
         default="config.toml",
         help="配置文件路径 (默认: config.toml)",
     )
+
+    web_parser = subparsers.add_parser("web", help="启动 Web API 服务")
+    web_parser.add_argument(
+        "--port", type=int, default=8000, help="监听端口 (默认: 8000)"
+    )
+    web_parser.add_argument(
+        "--host", type=str, default="0.0.0.0", help="监听地址 (默认: 0.0.0.0)"
+    )
+
     args = parser.parse_args()
+
+    if args.command == "web":
+        import uvicorn
+        from web.main import create_app
+        app = create_app()
+        uvicorn.run(app, host=args.host, port=args.port)
+        return
 
     config = config_loader.load_config(args.config)
 

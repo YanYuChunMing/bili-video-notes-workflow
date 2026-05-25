@@ -41,12 +41,17 @@
    - 6.2 Basic 模式流程
    - 6.3 With-Images 模式流程
    - 6.4 断点续跑机制
-7. [已知问题与限制](#7-已知问题与限制)
-   - 7.1 部署就绪性问题
-   - 7.2 视频下载相关限制
-   - 7.3 功能边界说明
-8. [版本历史](#8-版本历史)
-9. [贡献指南](#9-贡献指南)
+7. [Web 平台](#7-web-平台)
+   - 7.1 概述
+   - 7.2 技术栈
+   - 7.3 快速启动
+   - 7.4 相关文档
+8. [已知问题与限制](#8-已知问题与限制)
+   - 8.1 部署就绪性问题
+   - 8.2 视频下载相关限制
+   - 8.3 功能边界说明
+9. [版本历史](#9-版本历史)
+10. [贡献指南](#10-贡献指南)
 
 ---
 
@@ -1285,13 +1290,56 @@ process_single_video() [mode=with_images]
 
 ---
 
-## 7. 已知问题与限制
+## 7. Web 平台
 
-本章节记录当前版本（v1.1.0）中已验证的已知问题、限制和需要注意的边界条件。这些问题不影响核心功能的正常使用，但部署者和使用者应当知晓。
+### 7.1 概述
 
-### 7.1 部署就绪性问题
+自 v1.4.0 起，项目新增基于 **FastAPI + React** 的 Web 平台，提供图形化操作界面替代命令行交互。
 
-#### 7.1.1 `config.toml` 需用户自行创建
+**核心特性**：
+- **任务管理**：通过 Web UI 提交视频链接、查看进度、管理历史
+- **实时进度**：WebSocket 推送各处理阶段状态
+- **笔记展示**：摘要、思维导图（HTML 可视化）、图文笔记的在线查看
+- **配置管理**：在线编辑 `config.toml` 各项参数，测试 API Key 有效性
+- **API 契约层**：基于 OpenAPI schema + openapi-typescript 的前后端类型一致保障
+
+### 7.2 技术栈
+
+| 层 | 技术 | 说明 |
+|-----|------|------|
+| **后端** | FastAPI + Pydantic v2 | REST API + WebSocket |
+| **前端** | React 19 + TypeScript 6 + Vite 8 + Tailwind CSS 4 | SPA 单页应用 |
+| **契约** | OpenAPI 3.1 + openapi-typescript 7 | 自动类型生成 |
+| **部署** | Docker (CPU/GPU) + uvicorn | 前后端同容器托管 |
+
+### 7.3 快速启动
+
+```bash
+# 开发模式（前后端分离）
+python -m web.main              # 启动后端 :8000
+cd frontend && npm run dev      # 启动前端 :5173 (含 Vite proxy)
+
+# 生产模式（前后端一体化）
+cd frontend && npm run build    # 构建前端 → dist/
+python -m web.main              # 启动后端 → http://localhost:8000
+```
+
+### 7.4 相关文档
+
+| 文档 | 内容 |
+|------|------|
+| [API.md](docs/API.md) | 完整 REST API + WebSocket 参考（15+ 端点） |
+| [WEB_ARCHITECTURE.md](docs/WEB_ARCHITECTURE.md) | Web 平台架构设计（组件树、数据流、部署拓扑） |
+
+---
+
+## 8. 已知问题与限制
+
+本章节记录当前版本（v1.4.0）中已验证的已知问题、限制和需要注意的边界条件。这些问题不影响核心功能的正常使用，但部署者和使用者应当知晓。
+
+### 8.1 部署就绪性问题
+
+#### 8.1.1 `config.toml` 需用户自行创建
 
 **现状**：项目仅提供 [config.example.toml](file:///d:/AAA_MY/AAAMyGit/bili_video/config.example.toml) 模板，不包含实际运行用的 `config.toml`（该文件在 `.gitignore` 中排除）。
 
@@ -1301,7 +1349,7 @@ process_single_video() [mode=with_images]
 
 **解决**：参考 README 中的"5 分钟快速部署"步骤，复制模板并编辑。
 
-#### 7.1.2 `.env` 需用户自行创建
+#### 8.1.2 `.env` 需用户自行创建
 
 **现状**：仅提供空的 `.env.example` 模板。
 
@@ -1311,7 +1359,7 @@ process_single_video() [mode=with_images]
 
 **解决**：创建 `.env` 文件并填入有效的 `DEEPSEEK_API_KEY`。
 
-#### 7.1.3 `requirements.txt` 未声明 `yt-dlp`
+#### 8.1.3 `requirements.txt` 未声明 `yt-dlp`
 
 **现状**：[requirements.txt](file:///d:/AAA_MY/AAAMyGit/bili_video/requirements.txt) 中不包含 `yt-dlp` 依赖声明。
 
@@ -1323,7 +1371,7 @@ process_single_video() [mode=with_images]
 
 **解决**：手动执行 `pip install yt-dlp`，部署文档已明确说明。
 
-#### 7.1.4 `ffmpeg` / `ffprobe` 为外部系统依赖
+#### 8.1.4 `ffmpeg` / `ffprobe` 为外部系统依赖
 
 **现状**：以下模块通过 `subprocess` 调用系统安装的 ffmpeg/ffprobe：
 
@@ -1340,9 +1388,9 @@ process_single_video() [mode=with_images]
 
 **解决**：从 [ffmpeg.org](https://ffmpeg.org) 下载，将 `bin/` 目录添加到系统 PATH。
 
-### 7.2 视频下载相关限制
+### 8.2 视频下载相关限制
 
-#### 7.2.1 `basic` 模式不下载完整视频
+#### 8.2.1 `basic` 模式不下载完整视频
 
 **源码位置**：[main.py:L39-L42](file:///d:/AAA_MY/AAAMyGit/bili_video/main.py#L39-L42)
 
@@ -1366,7 +1414,7 @@ else:
 
 **结论**：项目具备下载视频的能力（`download_video()` 函数完整可用），但默认工作流设计为音频优先。
 
-#### 7.2.2 下载后输出目录路径时机瑕疵
+#### 8.2.2 下载后输出目录路径时机瑕疵
 
 **源码位置**：[main.py:L40](file:///d:/AAA_MY/AAAMyGit/bili_video/main.py#L40) 和 [main.py:L42](file:///d:/AAA_MY/AAAMyGit/bili_video/main.py#L42)
 
@@ -1394,7 +1442,7 @@ main.py:L52  copy audio → output_dir    ← 音频有事后 copy 补救
 
 **风险评估**：低 — 不影响核心输出（转录、笔记等均在正确的 `output_dir` 中），但产物分布不够整洁。
 
-#### 7.2.3 B站登录态 / Cookie / 风控场景未处理
+#### 8.2.3 B站登录态 / Cookie / 风控场景未处理
 
 **源码位置**：[downloader.py:L49-L58](file:///d:/AAA_MY/AAAMyGit/bili_video/src/downloader.py#L49-L58) 和 [downloader.py:L114-L122](file:///d:/AAA_MY/AAAMyGit/bili_video/src/downloader.py#L114-L122)
 
@@ -1424,9 +1472,9 @@ yt-dlp
 - 需要登录的视频（会员专享、年龄验证、地区限制）：下载必然失败
 - 风控严格的时段/IP：可能触发验证码导致下载失败
 
-### 7.3 功能边界说明
+### 8.3 功能边界说明
 
-#### 7.3.1 文字清洗模块不包含"语句通顺度优化"
+#### 8.3.1 文字清洗模块不包含"语句通顺度优化"
 
 **源码位置**：[text_cleaner.py:L61-L68](file:///d:/AAA_MY/AAAMyGit/bili_video/src/text_cleaner.py#L61-L68)
 
@@ -1447,7 +1495,7 @@ yt-dlp
 | 修正不通顺语句 | ❌ prompt 明确禁止修改措辞 | ❌ |
 | 优化口语化表达 | ❌ prompt 明确禁止修改措辞 | ❌ |
 
-#### 7.3.2 AI 功能为可选项，非强依赖
+#### 8.3.2 AI 功能为可选项，非强依赖
 
 以下功能依赖 DeepSeek API，未配置 API Key 时自动降级：
 - 标点补全 → 返回原文
@@ -1456,23 +1504,26 @@ yt-dlp
 
 核心转录功能（Whisper）始终可用，不依赖任何外部 API。
 
-#### 7.3.3 视频切割仅限 `with_images` 模式
+#### 8.3.3 视频切割仅限 `with_images` 模式
 
 `video_splitter` 模块仅在 `download_video()` 内部被调用（[downloader.py:L165](file:///d:/AAA_MY/AAAMyGit/bili_video/src/downloader.py#L165)），而 `download_video()` 仅在 `with_images` 或截图启用时触发。`basic` 模式不会执行视频切割。
 
-#### 7.3.4 Windows 路径兼容性
+#### 8.3.4 Windows 路径兼容性
 
 项目中使用了 `os.path.join()` 进行路径拼接，同时在某些位置使用 `/` 分隔符。跨平台部署时需注意路径分隔符差异，Linux/Mac 环境应无问题。
 
 ---
 
-## 8. 版本历史
+## 9. 版本历史
 
 本项目遵循 [语义化版本](https://semver.org/lang/zh-CN/)（Semantic Versioning），
 变更日志格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
 | 版本 | 日期 | 类型 | 说明 |
 |------|------|------|------|
+| **v1.4.0** | 2026-05-25 | MINOR | Web 平台正式上线：FastAPI REST API + WebSocket + React 19 SPA + OpenAPI 契约层 + 配置在线管理 |
+| **v1.3.0** | 2026-05-23 | MINOR | 学习单元驱动截图策略 (LearningScreenshotter)，五维度帧评分系统 |
+| **v1.2.0** | 2026-05-22 | MINOR | Docker 容器化支持 (CPU + GPU 双版本) |
 | **v1.1.0** | 2026-05-22 | MINOR | Bug 修复与健壮性增强：修复 CUDA DLL 缺失崩溃、API Key 占位符崩溃、OpenCV 中文路径截图写入失败、断点续跑模式互斥问题；新增 API Key 有效性校验 |
 | **v1.0.0** | 2026-05-20 | MAJOR | 初始版本。完整的 B站视频→笔记端到端流水线 |
 
@@ -1480,7 +1531,7 @@ yt-dlp
 
 ---
 
-## 9. 贡献指南
+## 10. 贡献指南
 
 ### 代码规范
 
@@ -1521,6 +1572,6 @@ python _check.py
 
 ---
 
-> **文档版本**：v1.2  
-> **更新日期**：2026-05-22  
-> **基于项目**：bili-video-notes-workflow v1.1.0
+> **文档版本**：v1.3
+> **更新日期**：2026-05-25
+> **基于项目**：bili-video-notes-workflow v1.4.0
